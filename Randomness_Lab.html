@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Randomness Lab</title>
+<style>
+:root{--navy:#1F3A5F;--blue:#2E75B6;--lblue:#E8F1FB;--green:#3C9D5D;--lgreen:#E9F6EC;--dgreen:#2E7D4F;--red:#C0392B;--lred:#FDECEA;--amber:#E0A800;--lamber:#FFF4D6;--damber:#8A6A00;--ink:#1B2A41;--grey:#5B6676;--line:#D5DDE8;--bg:#F5F8FC}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.5;color:var(--ink);background:var(--bg)}
+header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:22px}
+header .sub{font-size:14px;color:#CADCFC}
+.points{background:var(--amber);color:var(--ink);font-weight:bold;border-radius:20px;padding:6px 16px}
+main{max-width:900px;margin:0 auto;padding:18px 16px 60px}
+nav.map{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+nav.map button{flex:1 1 130px;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 8px;font-size:15px;font-weight:bold;color:var(--navy);cursor:pointer}
+nav.map button small{display:block;font-weight:normal;color:var(--grey);font-size:12px}
+nav.map button.active{border-color:var(--blue);background:var(--lblue)}
+nav.map button.done{border-color:var(--green);background:var(--lgreen)}
+nav.map button.done::after{content:" \2713";color:var(--dgreen)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.card h2{margin:0 0 6px;font-size:21px;color:var(--navy)}
+.card h3{margin:0 0 6px;font-size:18px;color:var(--navy)}
+.step{display:inline-block;background:var(--blue);color:#fff;border-radius:50%;width:28px;height:28px;text-align:center;line-height:28px;font-size:15px;font-weight:bold;margin-right:8px}
+.goal{background:var(--lgreen);border-left:6px solid var(--green);border-radius:8px;padding:8px 14px;margin:8px 0;font-size:16px}
+.method{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:10px 0}
+.method>div:not(.arr){flex:1 1 180px;background:var(--lblue);border:2px solid var(--blue);border-radius:10px;padding:10px 12px;font-size:16px}
+.method .arr{display:flex;align-items:center;font-size:26px;color:var(--blue);font-weight:bold}
+.story{background:var(--lamber);border-left:6px solid var(--amber);border-radius:8px;padding:12px 16px;margin:10px 0}
+button.act{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-size:16px;font-weight:bold;cursor:pointer}
+button.act:hover{background:#245f96}
+button.sec{background:#fff;color:var(--navy);border:2px solid var(--line);border-radius:10px;padding:8px 14px;font-size:15px;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+input[type=number]{font-size:17px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;width:92px}
+input[type=range]{width:100%;max-width:520px}
+label{font-weight:bold;margin-right:6px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:16px}
+th{background:var(--navy);color:#fff;padding:7px 10px;text-align:center}
+td{border:1px solid var(--line);padding:7px 10px;text-align:center}
+.mono{font-family:"Courier New",monospace;font-weight:bold}
+pre.code{background:#F2F4F7;border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-family:"Courier New",monospace;font-size:15px;overflow-x:auto}
+mark{background:var(--lamber);color:var(--damber);padding:0 2px;border-radius:3px;font-weight:bold}
+details.help{border:1px solid var(--line);border-radius:10px;background:var(--lblue);margin:10px 0;padding:0 14px}
+details.help summary{cursor:pointer;font-weight:bold;color:var(--blue);padding:10px 0}
+details.help[open]{padding-bottom:10px}
+details.help p{margin:6px 0}
+.fb{margin:10px 0;padding:10px 14px;border-radius:10px;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--lgreen);border:1px solid var(--green);color:var(--dgreen)}
+.fb.no{background:var(--lred);border:1px solid var(--red);color:var(--red)}
+.fb.info{background:var(--lamber);border:1px solid var(--amber);color:var(--damber)}
+.opts label{display:block;font-weight:normal;border:2px solid var(--line);border-radius:10px;padding:9px 12px;margin:7px 0;cursor:pointer}
+.opts input{margin-right:8px}
+.opts label:hover{background:var(--lblue)}
+.opts label.right{border-color:var(--green);background:var(--lgreen)}
+.opts label.wrong{border-color:var(--red);background:var(--lred)}
+.opts label.locked{cursor:default}
+.opts label.locked:not(.right):not(.wrong):hover{background:#fff}
+.bar{background:#E3E9F1;border-radius:10px;height:18px;overflow:hidden;margin:8px 0}
+.bar>div{background:var(--blue);height:100%;width:0%}
+.pill{display:inline-block;border-radius:20px;padding:2px 12px;font-size:14px;font-weight:bold}
+.done-banner{background:var(--lgreen);border:2px solid var(--green);border-radius:12px;padding:14px 18px;color:var(--dgreen);font-weight:bold;display:none;margin-bottom:12px}
+.done-banner.show{display:block}
+.key{word-break:break-all;background:#F2F4F7;border-radius:8px;padding:8px 10px;margin:6px 0}
+.coins{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;min-height:48px}
+.coin{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:20px;border:3px solid var(--amber);background:var(--lamber);color:var(--damber)}
+.coin.T{border-color:var(--blue);background:var(--lblue);color:var(--blue)}
+.big{font-size:20px;font-weight:bold;color:var(--navy)}
+.meter{background:#F7FAFD;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:10px 0}
+footer{color:var(--grey);font-size:14px;text-align:center;margin-top:24px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Randomness Lab</h1><div class="sub">Cryptology: learn how random numbers can fail</div></div>
+  <div class="points" aria-live="polite">Points: <span id="points">0</span></div>
+</header>
+<main>
+  <details class="help" style="margin-top:0"><summary>How does this lab work?</summary>
+    <p>There are 6 short levels. Read the story, do the task, and open the blue boxes if you need help. You get full points when you answer correctly on the first try, and half points after that. You can play the levels in any order, but the numbers 1 to 6 are a good order.</p>
+    <p>Everything runs in your browser. Nothing is sent or saved. If you reload the page, you start again.</p>
+  </details>
+  <nav class="map" aria-label="Levels">
+    <button id="nav1" class="active" onclick="showLevel(1)">Level 1<small>Same seed, same numbers</small></button>
+    <button id="nav2" onclick="showLevel(2)">Level 2<small>Count the bits</small></button>
+    <button id="nav3" onclick="showLevel(3)">Level 3<small>The clock problem</small></button>
+    <button id="nav4" onclick="showLevel(4)">Level 4<small>The Debian bug</small></button>
+    <button id="nav5" onclick="showLevel(5)">Level 5<small>Fix it</small></button>
+    <button id="nav6" onclick="showLevel(6)">Level 6<small>Final quiz</small></button>
+  </nav>
+
+  <!-- ================= LEVEL 1 ================= -->
+  <section id="level1">
+    <div class="card">
+      <h2>Level 1: Same seed, same numbers</h2>
+      <p>A <b>pseudo-random number generator (PRNG)</b> is a machine that makes numbers that <i>look</i> random. In this level you will see that it follows a rule, and that anyone who knows the rule and the start number can predict every number.</p>
+      <details class="help"><summary>What is a seed?</summary>
+        <p>The <b>seed</b> is the number where the machine starts. The machine takes the seed, applies a rule, and gets the first number. Then it applies the same rule to that number to get the next one, and so on.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">1</span>Meet the machine</h3>
+      <p>Our machine uses a very old rule, the <b>middle-square method</b>. For every number it does three things:</p>
+      <ol>
+        <li>Multiply the number by itself.</li>
+        <li>Write the result with 4 digits (add zeros at the front if needed).</li>
+        <li>Take the <mark>middle two digits</mark>. This is the next number.</li>
+      </ol>
+      <details class="help"><summary>Show me an example</summary>
+        <p>Start with 42. <b>42 x 42 = 1764</b>. The four digits are 1 <mark>7 6</mark> 4. The middle two digits are <mark>76</mark>. So the next number is <b>76</b>.</p>
+        <p>Now start with 5. 5 x 5 = 25. With 4 digits this is 0025. The middle two digits are 02. So the next number is <b>02</b>.</p>
+      </details>
+      <div class="row">
+        <label for="seed">Seed (10 to 99):</label>
+        <input id="seed" type="number" min="10" max="99" value="42">
+        <button class="act" id="stepBtn">Make the next number</button>
+        <button class="sec" id="resetBtn">Start again</button>
+      </div>
+      <table aria-label="Machine steps">
+        <thead><tr><th>Step</th><th>Number in</th><th>Number x itself</th><th>Middle two digits = next number</th></tr></thead>
+        <tbody id="stepRows"><tr><td colspan="4" style="color:#5B6676">Press the button to start the machine.</td></tr></tbody>
+      </table>
+      <div class="fb info" id="stuckNote"></div>
+    </div>
+    <div class="card">
+      <h3><span class="step">2</span>Run it twice</h3>
+      <p>Now we run the machine two times with the <b>same seed</b>. Will the numbers be different, because it is "random"?</p>
+      <button class="act" id="twiceBtn">Run the machine twice</button>
+      <div id="twiceOut" class="hidden">
+        <table><thead><tr><th>Run</th><th colspan="6">First six numbers</th></tr></thead><tbody id="twiceRows"></tbody></table>
+        <div class="fb ok show" id="twiceFb"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="step">3</span>Be a predictor</h3>
+      <p><b>Task A.</b> With seed 42 the machine made: <span class="mono">76, 77, 92, 46, 11, 12</span>. What is the <b>next</b> number?</p>
+      <div class="row"><label for="qa">Your answer:</label><input id="qa" type="number"><button class="act" onclick="checkNum('A')">Check</button></div>
+      <div class="fb" id="fbA" role="status"></div>
+      <details class="help"><summary>Hint and worked solution</summary>
+        <p>Use the last number, 12. Multiply: 12 x 12 = 144. With 4 digits: 0144. The middle two digits are the next number.</p>
+      </details>
+      <p style="margin-top:16px"><b>Task B.</b> Start with seed <b>31</b>. What is the <b>third</b> number the machine makes?</p>
+      <div class="row"><label for="qb">Your answer:</label><input id="qb" type="number"><button class="act" onclick="checkNum('B')">Check</button></div>
+      <div class="fb" id="fbB" role="status"></div>
+      <details class="help"><summary>Hint and worked solution</summary>
+        <p>Step 1: 31 x 31 = 961, written 0961, so the first number is 96.<br>Step 2: use 96. 96 x 96 = 9216, so the second number is 21.<br>Step 3: use 21 and do the same. What do you get?</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">4</span>Think like Eve</h3>
+      <p>Eve is an attacker. She knows the rule of the machine and the seed. What can she do?</p>
+      <div id="q1"></div>
+      <details class="help"><summary>Why is the rule not secret?</summary>
+        <p>In cryptology we always assume that the attacker knows the rule (the algorithm). Only the key, or here the seed, can be secret. This is Kerckhoffs's principle from Session 1.</p>
+      </details>
+    </div>
+    <div class="done-banner" id="done1">Level 1 complete! A PRNG is only a rule: the same seed always gives the same numbers. Next: how do we count how unpredictable a seed is? Try Level 2.</div>
+    <p><button class="act" onclick="showLevel(2)">Go to Level 2</button></p>
+  </section>
+
+  <!-- ================= LEVEL 2 ================= -->
+  <section id="level2" class="hidden">
+    <div class="card">
+      <h2>Level 2: Count the bits</h2>
+      <p>A key is only strong if nobody can guess it. <b>Entropy</b> measures how hard something is to guess, and we count it in <b>bits</b>. In this level you learn to count bits.</p>
+      <details class="help"><summary>What is entropy?</summary>
+        <p>Entropy is the amount of unpredictability. One fair coin flip has <b>1 bit</b>: there are two results, heads or tails, and nobody can guess better than 50 %. The more possible results, the more bits.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">1</span>Flip coins</h3>
+      <p>Press the button to flip a coin. Flip at least 3 coins and watch the numbers below.</p>
+      <div class="row"><button class="act" id="flipBtn">Flip a coin</button><button class="sec" id="clearCoins">Start again</button></div>
+      <div class="coins" id="coins" aria-live="polite"></div>
+      <div id="coinInfo" class="meter">No coins yet.</div>
+      <p class="goal"><b>What you learn:</b> every new coin <b>doubles</b> the number of possible results. n coins give 2<sup>n</sup> results and n bits of entropy.</p>
+      <p><b>Question.</b> How many different results are possible with <b>5</b> coin flips?</p>
+      <div class="row"><label for="qc5">Your answer:</label><input id="qc5" type="number"><button class="act" onclick="numCheck('qc5','fbC5',32,'l2q5',10,'Correct! 2 x 2 x 2 x 2 x 2 = 32 results, so 5 coins are 5 bits.','Not yet. One coin has 2 results. Each new coin doubles the number. Open the box below.')">Check</button></div>
+      <div class="fb" id="fbC5" role="status"></div>
+      <details class="help"><summary>Hint</summary><p>1 coin: 2 results. 2 coins: 4 results. 3 coins: 8 results. Keep doubling until you have 5 coins.</p></details>
+    </div>
+    <div class="card">
+      <h3><span class="step">2</span>From possibilities to bits</h3>
+      <p>Often we know the number of possibilities and want the bits. The rule: <b>bits = how many times you double 1 to reach that number</b>. Example: 1,024 possibilities = 10 bits, because 2<sup>10</sup> = 1,024.</p>
+      <details class="help"><summary>Show me the doubling table</summary><div id="dblTable"></div></details>
+      <p><b>Task A.</b> A 4-digit PIN has 10,000 possibilities. About how many bits is this?</p>
+      <div id="q2a"></div>
+      <p style="margin-top:14px"><b>Task B.</b> A seed from the clock is known to be within one hour, so there are 3,600 possible seconds. About how many bits is this?</p>
+      <div id="q2b"></div>
+      <p class="goal"><b>What you learn:</b> you do not need exact math. Find the closest power of 2 in the table. 10,000 is between 2<sup>13</sup> = 8,192 and 2<sup>14</sup> = 16,384.</p>
+    </div>
+    <div class="card">
+      <h3><span class="step">3</span>The entropy meter</h3>
+      <p>Move the slider to see what a number of bits means for an attacker. We assume the attacker can test <b>1 billion keys per second</b>.</p>
+      <details class="help"><summary>Why 1 billion tries per second?</summary>
+        <p>It is a simple, reasonable guess for one modern computer. Special hardware can be much faster, so real attackers are often quicker than this table.</p>
+      </details>
+      <div class="meter">
+        <label for="bitsRange">Entropy: <span class="big" id="bitsVal">20</span> bits</label><br>
+        <input id="bitsRange" type="range" min="1" max="128" value="20">
+        <div class="row"><button class="sec" onclick="setBits(15)">15 bits (process ID)</button><button class="sec" onclick="setBits(40)">40 bits</button><button class="sec" onclick="setBits(56)">56 bits (DES)</button><button class="sec" onclick="setBits(128)">128 bits (AES)</button></div>
+        <p>Possible values: <span class="big" id="possVal"></span></p>
+        <p>Time to try all of them: <span class="big" id="timeVal"></span></p>
+      </div>
+      <p><b>Question.</b> A key gets <b>10 bits longer</b>, for example from 30 bits to 40 bits. How much longer does it take to try all keys? Use the slider: write down the time at 30 bits, then the time at 40 bits, and compare them.</p>
+      <div id="q2c"></div>
+    </div>
+    <div class="done-banner" id="done2">Level 2 complete! You can count bits: each bit doubles the work for the attacker. Next: what happens when a seed has only a few bits? Try Level 3.</div>
+    <p><button class="act" onclick="showLevel(3)">Go to Level 3</button></p>
+  </section>
+
+  <!-- ================= LEVEL 3 ================= -->
+  <section id="level3" class="hidden">
+    <div class="card">
+      <h2>Level 3: The clock problem</h2>
+      <div class="story"><b>The story.</b> Alice wrote a program that makes a <b>128-bit secret key</b>. To get a "random" key, the program uses the <b>time of day in seconds</b> as the seed of a PRNG. You are <b>Eve</b>. You know that the key was made <b>today</b>, but you do not know the exact time.</div>
+      <p>A 128-bit key has 2<sup>128</sup> possible values. That is far too many to try. But how many <i>seeds</i> are possible?</p>
+      <details class="help"><summary>How many seconds are in a day?</summary>
+        <p>24 hours x 60 minutes x 60 seconds = <b>86,400</b> seconds. So today there are only 86,400 possible seeds, and only 86,400 possible keys.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">1</span>What Eve knows</h3>
+      <p>Eve has the public program code, so she knows how a seed becomes a key. She also learned the <b>fingerprint</b> of the key (its first 12 hex digits):</p>
+      <div class="key mono" id="fingerprint">...</div>
+      <details class="help"><summary>Why does Eve know a fingerprint?</summary>
+        <p>In a real attack Eve tests each candidate key on the encrypted message. If the message becomes readable, the key is right. To keep this game simple, we let Eve compare the first 12 hex digits of each candidate key with the fingerprint. The idea is the same.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">2</span>Eve's method: guess, calculate, compare</h3>
+      <p>Eve does not know the time. But she has the public program and the fingerprint. So she works in three steps:</p>
+      <div class="method">
+        <div><b>1. Guess</b><br>a time of day</div><div class="arr">&rarr;</div>
+        <div><b>2. Calculate</b><br>the key for that time, with the public program</div><div class="arr">&rarr;</div>
+        <div><b>3. Compare</b><br>its first 12 digits with the fingerprint</div>
+      </div>
+      <p>If the digits are the <b>same</b>, the guessed time is the real time. If they are <b>different</b>, Eve tries another time. Try one guess yourself:</p>
+      <div class="row">
+        <label for="hh">Your guess:</label>
+        <input id="hh" type="number" min="0" max="23" value="12" style="width:70px" aria-label="hours"> :
+        <input id="mm" type="number" min="0" max="59" value="0" style="width:70px" aria-label="minutes"> :
+        <input id="ss" type="number" min="0" max="59" value="0" style="width:70px" aria-label="seconds">
+        <button class="act" id="guessBtn">Calculate and compare</button>
+      </div>
+      <div class="fb" id="guessFb" role="status"></div>
+      <p class="goal"><b>What you learn:</b> Eve can test any guess in one calculation, but there are 86,400 possible times. A lucky guess almost never works (1 chance in 86,400).</p>
+    </div>
+    <div class="card">
+      <h3><span class="step">3</span>The computer repeats it for every second</h3>
+      <p>Trying one guess is easy, but trying 86,400 by hand is not. A computer does the same three steps for 00:00:00, then 00:00:01, then 00:00:02, and so on. It <b>stops when the digits match</b> the fingerprint.</p>
+      <p class="goal"><b>What you learn:</b> there are only 86,400 seeds, so a computer can test all of them in a fraction of a second. The long 128-bit key does not protect Alice.</p>
+      <details class="help"><summary>Does the computer know the secret time?</summary>
+        <p>No. Eve's attack never sees Alice's real time. It only tries one time after another and compares each calculated key with the fingerprint. When one time gives the same digits as the fingerprint, the attack has <b>found</b> Alice's time. The game then shows you this time and the full key, as the result of the attack.</p>
+      </details>
+      <div class="row">
+        <button class="act" id="slowBtn">Slow motion</button>
+        <button class="act" id="fastBtn">Full speed</button>
+        <button class="sec" id="newVictimBtn">New secret key</button>
+      </div>
+      <div class="bar" aria-hidden="true"><div id="progress"></div></div>
+      <div id="attackStatus" role="status">Ready.</div>
+      <div class="fb" id="attackFb"></div>
+    </div>
+    <div class="card">
+      <h3><span class="step">4</span>How strong is the key really?</h3>
+      <p>The key looks like 128 bits. How many bits of <b>real strength</b> does it have?</p>
+      <div id="q3"></div>
+      <details class="help"><summary>What does "bits of strength" mean?</summary>
+        <p>n bits of strength means about 2<sup>n</sup> possibilities for the attacker to try. 86,400 possibilities is about 2<sup>16.4</sup>, so the key is as weak as a 16-bit key, even if it is written with 128 bits.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">5</span>Fix the problem</h3>
+      <p>Alice reads the guide and changes her program. Now it takes the key from the <b>secure random generator of the computer</b> (not from the clock).</p>
+      <button class="act" id="fixBtn">Alice fixes her program</button>
+      <div class="fb" id="fixFb" role="status"></div>
+      <details class="help"><summary>What is a secure random generator?</summary>
+        <p>It is a generator designed for keys. The operating system collects unpredictable data (for example from hardware events) and uses it as a seed with lots of real entropy. Then nobody can guess the seed. In a browser it is called <span class="mono">crypto.getRandomValues</span>. In Python it is the <span class="mono">secrets</span> module.</p>
+      </details>
+      <p>Now run Eve's attack again (step 3) against the new key.</p>
+    </div>
+    <div class="done-banner" id="done3">Level 3 complete! A long key is not enough. The key is only as strong as the seed it comes from. Next: a real case with the same problem. Try Level 4.</div>
+    <p><button class="act" onclick="showLevel(4)">Go to Level 4</button></p>
+  </section>
+
+  <!-- ================= LEVEL 4 ================= -->
+  <section id="level4" class="hidden">
+    <div class="card">
+      <h2>Level 4: The Debian bug</h2>
+      <div class="story"><b>The real story.</b> In 2006 a developer of the Debian Linux distribution removed two lines of code from the OpenSSL library, because a code-checking tool gave a warning. Those lines added random data to the key generator. After the change, the generator was seeded almost only with the <b>process ID</b>. The problem was announced in May 2008, and all affected keys had to be replaced.</div>
+      <p>In this level you play a <b>toy version</b> of this bug and see why it was so serious.</p>
+      <details class="help"><summary>What is a process ID?</summary>
+        <p>Every running program gets a number from the operating system. This is its <b>process ID</b>. On Linux of that time it was a number from 1 to 32,767. It is not secret and it is not random.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">1</span>Count the keys</h3>
+      <p>The toy generator takes the process ID (1 to 32,767) as its seed and makes a 128-bit key from it. How many different keys can this generator make?</p>
+      <div id="q4a"></div>
+      <details class="help"><summary>Hint</summary><p>One seed gives exactly one key. So the number of keys is the same as the number of different seeds.</p></details>
+    </div>
+    <div class="card">
+      <h3><span class="step">2</span>Make the list of all keys</h3>
+      <p>You are an attacker. The program is public, so you can calculate the key for <b>every</b> process ID in advance and keep them in a list.</p>
+      <button class="act" id="buildBtn">Build the list of all possible keys</button>
+      <div class="fb" id="buildFb" role="status"></div>
+      <div id="listPreview" class="hidden"></div>
+      <p class="goal"><b>What you learn:</b> 32,767 keys is a short list. A normal computer builds it in a fraction of a second.</p>
+    </div>
+    <div class="card">
+      <h3><span class="step">3</span>Find the server's key</h3>
+      <p>A server has a key from the bugged generator. It shows this fingerprint (the first 12 hex digits):</p>
+      <div class="key mono" id="fp4">...</div>
+      <div class="row"><button class="act" id="lookupBtn">Look it up in the list</button><button class="sec" id="newServerBtn">New server</button></div>
+      <div class="fb" id="lookupFb" role="status"></div>
+      <details class="help"><summary>Why can everybody find the key?</summary>
+        <p>The generator is public, and the process ID is the only unknown part. With the list, any attacker finds the key of any server with this bug. The cipher itself was never broken. Only the key generation was.</p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">4</span>The lesson</h3>
+      <p>What is the main lesson from this bug?</p>
+      <div id="q4b"></div>
+    </div>
+    <div class="done-banner" id="done4">Level 4 complete! The Debian bug had only about 32,767 possible keys, so every affected key could be listed. Next: how do we do it right? Try Level 5.</div>
+    <p><button class="act" onclick="showLevel(5)">Go to Level 5</button></p>
+  </section>
+
+  <!-- ================= LEVEL 5 ================= -->
+  <section id="level5" class="hidden">
+    <div class="card">
+      <h2>Level 5: Fix it</h2>
+      <p>You know the problem. Now choose the safe solution. There are four short rounds.</p>
+      <details class="help"><summary>Where do I find a secure random generator?</summary>
+        <p>Every common platform has one. These lines make 16 random bytes (128 bits):</p>
+        <p>Python: <span class="mono">secrets.token_bytes(16)</span><br>
+        Java: <span class="mono">new SecureRandom().nextBytes(key)</span><br>
+        JavaScript (browser): <span class="mono">crypto.getRandomValues(new Uint8Array(16))</span><br>
+        Linux shell: <span class="mono">head -c 16 /dev/urandom</span></p>
+      </details>
+    </div>
+    <div class="card">
+      <h3><span class="step">1</span>Make a key</h3>
+      <p>Alice needs a secret key for her program. Which way is safe?</p>
+      <div id="q5a"></div>
+    </div>
+    <div class="card">
+      <h3><span class="step">2</span>Find the bug</h3>
+      <p>A developer wrote this code to make a session token:</p>
+      <pre class="code">random.seed(int(time.time()))
+token = random.getrandbits(128)</pre>
+      <p>What is the problem?</p>
+      <div id="q5b"></div>
+    </div>
+    <div class="card">
+      <h3><span class="step">3</span>After the bug</h3>
+      <p>The Debian bug is fixed in a new software version. What must still be done with the weak keys that were already made?</p>
+      <div id="q5c"></div>
+    </div>
+    <div class="card">
+      <h3><span class="step">4</span>Enough entropy</h3>
+      <p>When does a seed have enough entropy?</p>
+      <div id="q5d"></div>
+    </div>
+    <div class="done-banner" id="done5"><b>Level 5 complete! Three rules to remember:</b><br>1. Make keys with the secure random generator of the operating system.<br>2. Never seed a generator with the clock or a process ID.<br>3. If a key generator was flawed, replace all keys it made.<br>Next: the final quiz in Level 6.</div>
+    <p><button class="act" onclick="showLevel(6)">Go to Level 6</button></p>
+  </section>
+
+  <!-- ================= LEVEL 6 ================= -->
+  <section id="level6" class="hidden">
+    <div class="card">
+      <h2>Level 6: Final quiz</h2>
+      <p>Six questions about everything in this lab. Answer all of them, then press <b>Check my answers</b> at the bottom. You need at least <span id="passMark">5</span> correct answers to pass. After you check, the correct answers and explanations are shown.</p>
+    </div>
+    <div id="res6" class="hidden" role="status"></div>
+    <div class="card"><h3>Question 1</h3><p>What is the difference between a PRNG and a true random source?</p><div id="q6a"></div></div>
+    <div class="card"><h3>Question 2</h3><p>A seed is made from 20 fair coin flips. How many different seeds are possible?</p><div id="q6b"></div></div>
+    <div class="card"><h3>Question 3</h3><p>A server makes a key from the time in seconds. An attacker knows the day. How many seeds must she try at most?</p><div id="q6c"></div></div>
+    <div class="card"><h3>Question 4</h3><p>Which source should a program use to make an encryption key?</p><div id="q6d"></div></div>
+    <div class="card"><h3>Question 5</h3><p>A 128-bit key comes from a seed with only 16 bits of entropy. How strong is the key?</p><div id="q6e"></div></div>
+    <div class="card"><h3>Question 6</h3><p>Why were the Debian keys easy to find after the bug?</p><div id="q6f"></div></div>
+    <p><button class="act" id="resultBtn">Check my answers</button> <button class="act hidden" id="againBtn">Try again</button></p>
+  </section>
+  <footer>Everything runs in your browser. Nothing is sent or saved. Reload the page to start again.</footer>
+</main>
+
+<script>
+/* ---------------- shared helpers ---------------- */
+var points = 0, done = {}, attempts = {};
+function randInt(n) { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+function shuffle(arr) { for (var i = arr.length - 1; i > 0; i--) { var j = randInt(i + 1), t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+function two(n) { return String(n).padStart(2, '0'); }
+function addPoints(key, n) { if (done[key]) return 0; done[key] = true; points += n; document.getElementById('points').textContent = points; checkLevels(); return n; }
+function award(key, base) { attempts[key] = (attempts[key] || 0) + 1; return attempts[key] === 1 ? base : Math.ceil(base / 2); }
+function fb(id, kind, html) { var e = document.getElementById(id); e.className = 'fb show ' + kind; e.innerHTML = html; }
+function showLevel(n) {
+  for (var i = 1; i <= 6; i++) { document.getElementById('level' + i).classList.toggle('hidden', i !== n); document.getElementById('nav' + i).classList.toggle('active', i === n); }
+  window.scrollTo(0, 0);
+}
+var LEVEL_KEYS = { 1: ['l1A', 'l1B', 'l1Q'], 2: ['l2coins', 'l2q5', 'l2A', 'l2B', 'l2meter', 'l2Q'], 3: ['l3-found', 'l3Q', 'l3-fixedtest'], 4: ['l4Q1', 'l4list', 'l4find', 'l4Q2'], 5: ['l5r1', 'l5r2', 'l5r3', 'l5r4'], 6: ['l6q1', 'l6q2', 'l6q3', 'l6q4', 'l6q5', 'l6q6'] };
+function checkLevels() {
+  for (var n = 1; n <= 5; n++) {
+    var ok = LEVEL_KEYS[n].every(function (k) { return done[k]; });
+    document.getElementById('nav' + n).classList.toggle('done', ok);
+    document.getElementById('done' + n).classList.toggle('show', ok);
+  }
+}
+/* multiple choice with shuffled options; opts[okIndex] is the correct one */
+function mcq(id, key, opts, okIndex, base, okMsg, noMsg, keepOrder) {
+  var box = document.getElementById(id), name = 'r_' + id;
+  var order = opts.map(function (t, i) { return { t: t, i: i }; }); if (!keepOrder) shuffle(order);
+  box.innerHTML = '<div class="opts">' + order.map(function (o) { return '<label><input type="radio" name="' + name + '" value="' + o.i + '">' + o.t + '</label>'; }).join('') + '</div><button class="act">Check</button><div class="fb" role="status"></div>';
+  var btn = box.querySelector('button'), f = box.querySelector('.fb');
+  btn.onclick = function () {
+    var sel = box.querySelector('input:checked');
+    if (!sel) { f.className = 'fb show info'; f.textContent = 'Please choose an answer.'; return; }
+    if (+sel.value === okIndex) {
+      var p = award(key, base); var got = addPoints(key, p);
+      f.className = 'fb show ok'; f.innerHTML = okMsg + (got ? ' (+' + got + ' points)' : '');
+    } else { award(key, base); f.className = 'fb show no'; f.innerHTML = noMsg; }
+  };
+}
+function numCheck(inputId, fbId, want, key, base, okMsg, noMsg) {
+  var v = parseInt(document.getElementById(inputId).value, 10);
+  if (isNaN(v)) { fb(fbId, 'info', 'Please type a number.'); return; }
+  if (v === want) { var p = award(key, base); var got = addPoints(key, p); fb(fbId, 'ok', okMsg + (got ? ' (+' + got + ' points)' : '')); }
+  else { award(key, base); fb(fbId, 'no', noMsg); }
+}
+
+/* ---------------- Level 1: middle-square ---------------- */
+function msNext(x) { var sq = String(x * x).padStart(4, '0'); return { sq: sq, next: parseInt(sq.slice(1, 3), 10) }; }
+function msSeq(seed, n) { var out = [], x = seed; for (var i = 0; i < n; i++) { x = msNext(x).next; out.push(x); } return out; }
+var cur = null, seen = [], steps = 0;
+function readSeed() { var v = parseInt(document.getElementById('seed').value, 10); return (isNaN(v) || v < 10 || v > 99) ? null : v; }
+function resetMachine() { cur = null; seen = []; steps = 0; document.getElementById('stepRows').innerHTML = '<tr><td colspan="4" style="color:#5B6676">Press the button to start the machine.</td></tr>'; document.getElementById('stuckNote').className = 'fb info'; }
+document.getElementById('resetBtn').onclick = resetMachine;
+document.getElementById('seed').oninput = resetMachine;
+document.getElementById('stepBtn').onclick = function () {
+  if (cur === null) { var s = readSeed(); if (s === null) { fb('stuckNote', 'no', 'Please type a seed between 10 and 99.'); return; } cur = s; seen = [s]; document.getElementById('stepRows').innerHTML = ''; document.getElementById('stuckNote').className = 'fb info'; }
+  if (steps >= 10) { fb('stuckNote', 'info', 'That is enough for now. Press "Start again" to try another seed.'); return; }
+  var r = msNext(cur); steps++;
+  var tr = document.createElement('tr');
+  var mid = r.sq[0] + '<mark>' + r.sq[1] + r.sq[2] + '</mark>' + r.sq[3];
+  tr.innerHTML = '<td>' + steps + '</td><td class="mono">' + two(cur) + '</td><td class="mono">' + cur + ' x ' + cur + ' = ' + mid + '</td><td class="mono"><mark>' + two(r.next) + '</mark></td>';
+  document.getElementById('stepRows').appendChild(tr);
+  var repeated = seen.indexOf(r.next) >= 0;
+  seen.push(r.next); cur = r.next;
+  if (r.next === 0 || repeated) fb('stuckNote', 'info', 'Look: the machine now repeats itself' + (r.next === 0 ? ' (it reached 00 and stays there)' : '') + '. This old rule is weak. Real generators use much stronger rules, but the idea is the same: <b>same seed, same numbers</b>.');
+  addPoints('l1-meet', 5);
+};
+document.getElementById('twiceBtn').onclick = function () {
+  var s = readSeed(); if (s === null) s = 42;
+  var a = msSeq(s, 6), b = msSeq(s, 6);
+  document.getElementById('twiceOut').classList.remove('hidden');
+  var cells = function (arr) { return arr.map(function (v) { return '<td class="mono">' + two(v) + '</td>'; }).join(''); };
+  document.getElementById('twiceRows').innerHTML = '<tr><td>Run 1 (seed ' + s + ')</td>' + cells(a) + '</tr><tr><td>Run 2 (seed ' + s + ')</td>' + cells(b) + '</tr>';
+  document.getElementById('twiceFb').innerHTML = 'The two runs are <b>exactly the same</b>. The machine is not random: it only <i>looks</i> random. Whoever knows the seed knows every number. (+5 points)';
+  addPoints('l1-twice', 5);
+};
+function checkNum(which) {
+  var want = which === 'A' ? msSeq(42, 7)[6] : msSeq(31, 3)[2];
+  numCheck(which === 'A' ? 'qa' : 'qb', which === 'A' ? 'fbA' : 'fbB', want, 'l1' + which, 10, 'Correct! The answer is <b>' + two(want) + '</b>. You calculated what the machine will do.', 'Not yet. Open the hint below and calculate step by step. Remember: multiply the number by itself, write 4 digits, take the middle two.');
+}
+mcq('q1', 'l1Q', ['Calculate every number the machine will produce', 'Only guess the next number with a 50 % chance', 'Calculate nothing, because the rule is secret', 'Calculate only the numbers that already appeared'], 0, 10,
+  'Correct! With the rule and the seed, Eve can calculate <b>every</b> number. In Task A you did exactly this.', 'Not quite. Think about Task A: could you calculate the next number? What did you need?');
+
+/* ---------------- Level 2: entropy ---------------- */
+var coins = [];
+function renderCoins() {
+  var n = coins.length, box = document.getElementById('coins');
+  box.innerHTML = coins.map(function (c) { return '<div class="coin ' + c + '">' + c + '</div>'; }).join('');
+  var info = 'Coins flipped: <b>' + n + '</b><br>Possible results: 2<sup>' + n + '</sup> = <b>' + Math.pow(2, n).toLocaleString('en-US') + '</b><br>Entropy: <b>' + n + ' bits</b>';
+  if (n > 0 && n <= 3) { var all = ['']; for (var i = 0; i < n; i++) { var nx = []; all.forEach(function (s) { nx.push(s + 'H'); nx.push(s + 'T'); }); all = nx; } info += '<br>All results: <span class="mono">' + all.join('  ') + '</span>'; }
+  document.getElementById('coinInfo').innerHTML = n ? info : 'No coins yet.';
+  if (n >= 3) addPoints('l2coins', 5);
+}
+document.getElementById('flipBtn').onclick = function () { if (coins.length >= 8) { fb('fbC5', 'info', 'That is enough coins. Press "Start again" to flip again.'); return; } coins.push(randInt(2) ? 'H' : 'T'); renderCoins(); };
+document.getElementById('clearCoins').onclick = function () { coins = []; renderCoins(); };
+(function () { var h = '<table><thead><tr><th>Bits n</th><th>2<sup>n</sup></th><th>Bits n</th><th>2<sup>n</sup></th></tr></thead><tbody>'; for (var i = 1; i <= 10; i++) h += '<tr><td>' + i + '</td><td>' + Math.pow(2, i).toLocaleString('en-US') + '</td><td>' + (i + 10) + '</td><td>' + Math.pow(2, i + 10).toLocaleString('en-US') + '</td></tr>'; document.getElementById('dblTable').innerHTML = h + '</tbody></table>'; })();
+mcq('q2a', 'l2A', ['About 8 bits', 'About 13 bits', 'About 16 bits', 'About 20 bits'], 1, 10, 'Correct! 10,000 is between 2<sup>13</sup> = 8,192 and 2<sup>14</sup> = 16,384, so it is about 13 bits.', 'Not yet. Open the doubling table and find the power of 2 that is closest to 10,000.', true);
+mcq('q2b', 'l2B', ['About 6 bits', 'About 9 bits', 'About 12 bits', 'About 16 bits'], 2, 10, 'Correct! 3,600 is close to 2<sup>12</sup> = 4,096, so it is about 12 bits.', 'Not yet. Find the power of 2 closest to 3,600 in the doubling table.', true);
+function fmtBig(x) { if (x < 1e15) return Math.round(x).toLocaleString('en-US'); var e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e); return m.toFixed(1) + ' x 10<sup>' + e + '</sup>'; }
+function fmtTime(sec) {
+  if (sec < 0.001) return 'less than 1 millisecond';
+  if (sec < 1) { var ms = Math.round(sec * 1000); return ms + (ms === 1 ? ' millisecond' : ' milliseconds'); }
+  if (sec < 60) return sec.toFixed(1) + ' seconds';
+  if (sec < 3600) return (sec / 60).toFixed(1) + ' minutes';
+  if (sec < 86400) return (sec / 3600).toFixed(1) + ' hours';
+  if (sec < 31557600) return (sec / 86400).toFixed(1) + ' days';
+  var y = sec / 31557600;
+  if (y < 1e6) return y.toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' years';
+  if (y < 1.38e10) return (y / 1e9).toFixed(2) + ' billion years';
+  return fmtBig(y) + ' years (more than the age of the universe, about 13.8 billion years)';
+}
+function updMeter() { var b = +document.getElementById('bitsRange').value, x = Math.pow(2, b); document.getElementById('bitsVal').textContent = b; document.getElementById('possVal').innerHTML = fmtBig(x); document.getElementById('timeVal').innerHTML = fmtTime(x / 1e9); addPoints('l2meter', 5); }
+function setBits(b) { document.getElementById('bitsRange').value = b; updMeter(); }
+document.getElementById('bitsRange').oninput = updMeter;
+(function () { var b = 20, x = Math.pow(2, b); document.getElementById('possVal').innerHTML = fmtBig(x); document.getElementById('timeVal').innerHTML = fmtTime(x / 1e9); })();
+mcq('q2c', 'l2Q', ['About 10 times longer', 'About 100 times longer', 'About 1,000 times longer', 'About 10,000 times longer'], 2, 10, 'Correct! 10 more bits means 2<sup>10</sup> = 1,024 times more keys, so the search takes about 1,000 times longer. The slider shows it: about 1 second at 30 bits and about 18 minutes at 40 bits.', 'Not yet. Set the slider to 30 bits and write down the time. Then set it to 40 bits. How many times bigger is the second time?', true);
+
+/* ---------------- Level 3: the clock problem ---------------- */
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0); }; }
+function keyFromSeed(seed) { var r = mulberry32(seed), hex = ''; for (var i = 0; i < 4; i++) hex += r().toString(16).padStart(8, '0'); return hex; }
+function hms(sec) { var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return two(h) + ':' + two(m) + ':' + two(s); }
+var victim = null, running = false;
+function newVictim(fixed) {
+  if (fixed) { var a = new Uint32Array(4); crypto.getRandomValues(a); var k = ''; for (var i = 0; i < 4; i++) k += a[i].toString(16).padStart(8, '0'); victim = { fixed: true, seed: null, key: k }; }
+  else { var s = randInt(86400); victim = { fixed: false, seed: s, key: keyFromSeed(s) }; }
+  document.getElementById('fingerprint').textContent = victim.key.slice(0, 12);
+  document.getElementById('progress').style.width = '0%';
+  document.getElementById('attackStatus').textContent = 'Ready.';
+  document.getElementById('attackFb').className = 'fb';
+  document.getElementById('guessFb').className = 'fb';
+}
+document.getElementById('newVictimBtn').onclick = function () { if (!running) newVictim(victim && victim.fixed); };
+document.getElementById('guessBtn').onclick = function () {
+  var h = +document.getElementById('hh').value, m = +document.getElementById('mm').value, s = +document.getElementById('ss').value;
+  if ([h, m, s].some(isNaN) || h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59) { fb('guessFb', 'no', 'Please use hours 0-23, minutes 0-59 and seconds 0-59.'); return; }
+  var seed = h * 3600 + m * 60 + s, key = keyFromSeed(seed), ok = key.slice(0, 12) === victim.key.slice(0, 12);
+  var cmp = 'Your guess: <b>' + hms(seed) + '</b> (seed ' + seed.toLocaleString('en-US') + ')<br>Key you calculated starts with: <span class="mono">' + key.slice(0, 12) + '</span><br>The fingerprint is: <span class="mono">' + victim.key.slice(0, 12) + '</span><br>';
+  if (ok) fb('guessFb', 'ok', cmp + '<b>The digits are the same! Lucky guess: this is the real time.</b>');
+  else fb('guessFb', 'no', cmp + '<b>The digits are different, so this is not the real time.</b> There are 86,400 possible times, so a lucky guess has only 1 chance in 86,400. Eve needs a computer to try them all.');
+  addPoints('l3-guess', 5);
+};
+function report(found, tried, ms, slow) {
+  var st = document.getElementById('attackStatus');
+  if (found >= 0) {
+    document.getElementById('progress').style.width = (tried / 864) + '%';
+    st.innerHTML = 'Tried <b>' + tried.toLocaleString('en-US') + '</b> of 86,400 seeds.';
+    var p = addPoints('l3-found', 15);
+    fb('attackFb', 'ok', '<b>Match!</b> At <span class="mono">' + hms(found) + '</span> the calculated key starts with <span class="mono">' + keyFromSeed(found).slice(0, 12) + '</span>, the same as the fingerprint. So Alice made her key at this time (seed ' + found.toLocaleString('en-US') + ').<br>Full key: <span class="mono" style="word-break:break-all">' + keyFromSeed(found) + '</span><br>' + (slow ? 'In slow motion this took about ' + (ms / 1000).toFixed(1) + ' seconds, because the game shows every step. Press "Full speed" to see how fast the computer really is.' : (ms < 1000 ? 'The computer needed about <b>' + Math.max(1, Math.round(ms)) + ' milliseconds</b>. A 128-bit key was broken in less than a second.' : 'The computer needed about <b>' + (ms / 1000).toFixed(1) + ' seconds</b>. That is still very fast for a 128-bit key.')) + (p ? ' (+' + p + ' points)' : ''));
+  } else {
+    document.getElementById('progress').style.width = '100%';
+    st.innerHTML = 'Tried all <b>86,400</b> seeds.';
+    var p2 = victim.fixed ? addPoints('l3-fixedtest', 15) : 0;
+    fb('attackFb', victim.fixed ? 'ok' : 'no', '<b>Not found.</b> None of the 86,400 clock seeds gives this key. The key does not come from the clock, so Eve would have to try about 3.4 x 10<sup>38</sup> keys. That is impossible.' + (p2 ? ' (+' + p2 + ' points)' : ''));
+  }
+}
+function attackFull() {
+  if (running) return; var t0 = performance.now(), target = victim.key.slice(0, 12), found = -1, tried = 0;
+  for (var s = 0; s < 86400; s++) { tried++; if (keyFromSeed(s).slice(0, 12) === target) { found = s; break; } }
+  report(found, tried, performance.now() - t0, false);
+}
+function attackSlow() {
+  if (running) return; running = true; var s = 0, target = victim.key.slice(0, 12), t0 = performance.now(), CH = 1200;
+  document.getElementById('attackFb').className = 'fb';
+  (function frame() {
+    var end = Math.min(86400, s + CH);
+    for (; s < end; s++) { if (keyFromSeed(s).slice(0, 12) === target) { running = false; report(s, s + 1, performance.now() - t0, true); return; } }
+    document.getElementById('progress').style.width = (s / 864) + '%';
+    document.getElementById('attackStatus').innerHTML = 'Testing <span class="mono">' + hms(s - 1) + '</span> (seed ' + s.toLocaleString('en-US') + ' of 86,400)<br>Calculated key starts with <span class="mono">' + keyFromSeed(s - 1).slice(0, 12) + '</span> | fingerprint <span class="mono">' + victim.key.slice(0, 12) + '</span> | different, try the next second';
+    if (s >= 86400) { running = false; report(-1, 86400, performance.now() - t0, true); return; }
+    requestAnimationFrame(frame);
+  })();
+}
+document.getElementById('fastBtn').onclick = attackFull;
+document.getElementById('slowBtn').onclick = attackSlow;
+mcq('q3', 'l3Q', ['128 bits, because the key has 128 bits', 'About 64 bits, because the time is half known', 'About 16 bits, because there are 86,400 seeds', 'About 86 bits, because there are 86,400 seeds'], 2, 10,
+  'Correct! 86,400 is about 2<sup>16.4</sup>, so the key has only about <b>16 bits</b> of real strength.', 'Not quite. Eve only had to try 86,400 seeds. How many bits are needed to count 86,400 possibilities? Open the help box below.');
+document.getElementById('fixBtn').onclick = function () {
+  newVictim(true);
+  fb('fixFb', 'ok', 'Alice\'s new key comes from the secure random generator. Its fingerprint (step 1) has changed. Now run the attack in step 3 again.');
+  addPoints('l3-fix', 10);
+};
+newVictim(false);
+
+/* ---------------- Level 4: the Debian-style bug ---------------- */
+var pidMap = null, server = null;
+function pidKey(pid) { return keyFromSeed(1000000 + pid); }
+function newServer() { var pid = 1 + randInt(32767); server = { pid: pid, key: pidKey(pid) }; document.getElementById('fp4').textContent = server.key.slice(0, 12); document.getElementById('lookupFb').className = 'fb'; }
+mcq('q4a', 'l4Q1', ['About 128 keys', 'About 32,767 keys', 'About 86,400 keys', 'About 2<sup>128</sup> keys'], 1, 10, 'Correct! One process ID gives one key, so there are only <b>32,767</b> keys. That is about 15 bits, not 128.', 'Not yet. How many process IDs are possible? Open the hint and the process ID box.', true);
+document.getElementById('buildBtn').onclick = function () {
+  var t0 = performance.now(); pidMap = {}; var first = [];
+  for (var pid = 1; pid <= 32767; pid++) { var k = pidKey(pid); pidMap[k.slice(0, 12)] = pid; if (pid <= 3 || pid === 32767) first.push([pid, k.slice(0, 12)]); }
+  var ms = performance.now() - t0, p = addPoints('l4list', 10);
+  fb('buildFb', 'ok', 'The list has <b>32,767</b> keys. Your computer built it in about <b>' + Math.max(1, Math.round(ms)) + ' milliseconds</b>.' + (p ? ' (+' + p + ' points)' : ''));
+  var h = '<table><thead><tr><th>Process ID</th><th>Fingerprint (first 12 hex digits)</th></tr></thead><tbody>';
+  first.forEach(function (r, i) { if (i === 3) h += '<tr><td>...</td><td>...</td></tr>'; h += '<tr><td>' + r[0].toLocaleString('en-US') + '</td><td class="mono">' + r[1] + '</td></tr>'; });
+  var pv = document.getElementById('listPreview'); pv.innerHTML = h + '</tbody></table>'; pv.classList.remove('hidden');
+};
+document.getElementById('lookupBtn').onclick = function () {
+  if (!pidMap) { fb('lookupFb', 'info', 'First build the list in step 2.'); return; }
+  var fp = server.key.slice(0, 12), pid = pidMap[fp], p = addPoints('l4find', 15);
+  fb('lookupFb', 'ok', '<b>Found!</b> The fingerprint <span class="mono">' + fp + '</span> is in the list at process ID <b>' + pid.toLocaleString('en-US') + '</b>. The full key is <span class="mono" style="word-break:break-all">' + pidKey(pid) + '</span><br>Anyone with the list can find the key of every server with this bug.' + (p ? ' (+' + p + ' points)' : ''));
+};
+document.getElementById('newServerBtn').onclick = newServer;
+newServer();
+mcq('q4b', 'l4Q2', ['A tiny seed space makes every key easy to list', 'A new mathematical attack broke the cipher itself', 'Longer keys would have fixed the problem alone', 'Process IDs are secret, so the bug was harmless'], 0, 10,
+  'Correct! The cipher was fine. The key generation had only about 32,767 possible seeds, so all keys could be listed.', 'Not quite. Remember step 2: which part was weak, the cipher or the key generation?');
+
+/* ---------------- Level 5: fix it ---------------- */
+mcq('q5a', 'l5r1', ['Seed an ordinary generator with the clock time', 'Take 16 bytes from the operating system generator', 'Use the user\'s name to make a repeatable number', 'Use the same fixed seed so that tests always match'], 1, 10,
+  'Correct! The generator of the operating system has real entropy and is designed for keys.', 'Not safe. An attacker can guess or repeat this seed. A key needs real, unpredictable entropy. Open the box above to see the safe tools.');
+mcq('q5b', 'l5r2', ['The seed comes from the clock, which is easy to guess', 'The token is too long to be used by programs', 'The function getrandbits does not exist in Python', 'The clock time is a secret value in most systems'], 0, 10,
+  'Correct! The seed is the time in seconds. An attacker who knows roughly when the token was made can try all the seeds, as in Level 3.', 'Not quite. Think about Level 3: where does the seed come from in this code, and who can guess it?');
+mcq('q5c', 'l5r3', ['Replace all of them with newly generated keys', 'Keep them, because the cipher is still strong', 'Make them longer by adding zeros at the end', 'Hide the list of possible keys from attackers'], 0, 10,
+  'Correct! Every key made by the flawed generator is one of only 32,767. All of them must be replaced with new keys from a fixed generator.', 'Not quite. The attacker can build the list of all possible keys, so hiding or lengthening them does not help. What must happen to keys that are already weak?');
+mcq('q5d', 'l5r4', ['An attacker cannot guess it in practice', 'It is written with at least 128 characters', 'It changes every second, like the clock', 'It is kept in a file that has a secret name'], 0, 10,
+  'Correct! A seed is good when it has many bits of entropy: nobody can guess it or try all the possibilities.', 'Not quite. Think about Levels 2 and 3: what makes a seed strong, its length, its changes, or the number of possibilities?');
+
+/* ---------------- Level 6: final quiz (one check at the end) ---------------- */
+var PASS_MARK = 5, quiz6Attempt = 0;
+document.getElementById('passMark').textContent = PASS_MARK;
+var Q6 = [
+  { id: 'q6a', key: 'l6q1', keep: false, ok: 0, topic: 'Level 1 (PRNG and seed)', opts: ['A PRNG follows a rule: the same seed, the same numbers', 'A PRNG is slower and gives numbers nobody can predict', 'A true random source needs a seed and a secret rule', 'A PRNG is always secure enough to make secret keys'], why: 'A PRNG is a rule. Anyone who knows the rule and the seed can repeat every number.' },
+  { id: 'q6b', key: 'l6q2', keep: true, ok: 2, topic: 'Level 2 (counting bits)', opts: ['About 20 seeds', 'About 400 seeds', 'About 1 million seeds', 'About 20 million seeds'], why: '20 coins give 2<sup>20</sup> = 1,048,576 results, which is about 1 million.' },
+  { id: 'q6c', key: 'l6q3', keep: true, ok: 2, topic: 'Level 3 (the clock problem)', opts: ['About 24 seeds', 'About 3,600 seeds', 'About 86,400 seeds', 'About 2<sup>128</sup> seeds'], why: 'One day has 24 x 60 x 60 = 86,400 seconds, so at most 86,400 seeds.' },
+  { id: 'q6d', key: 'l6q4', keep: false, ok: 0, topic: 'Level 5 (secure generator)', opts: ['The secure random generator of the operating system', 'The ordinary random function with the clock as seed', 'A random-looking number typed in by the developer', 'The process ID of the program, written in hex'], why: 'Keys must come from the secure generator of the operating system. The other three have a seed that can be guessed.' },
+  { id: 'q6e', key: 'l6q5', keep: true, ok: 0, topic: 'Level 3 (real strength of a key)', opts: ['About 16 bits', 'About 64 bits', 'About 128 bits', 'About 144 bits'], why: 'The key is only as strong as its seed: about 16 bits.' },
+  { id: 'q6f', key: 'l6q6', keep: false, ok: 1, topic: 'Level 4 (the Debian bug)', opts: ['The keys were stored without any encryption', 'Only about 32,767 different keys could exist', 'The attackers had the private keys of Debian', 'The cipher had a new mathematical weakness'], why: 'With only about 32,767 possible keys, all of them could be listed in advance. The cipher itself was fine.' }
+];
+function renderQuiz6() {
+  Q6.forEach(function (q) {
+    var order = q.opts.map(function (t, i) { return { t: t, i: i }; }); if (!q.keep) shuffle(order);
+    document.getElementById(q.id).innerHTML = '<div class="opts">' + order.map(function (o) { return '<label><input type="radio" name="r_' + q.id + '" value="' + o.i + '">' + o.t + '</label>'; }).join('') + '</div><div class="fb" role="status"></div>';
+  });
+  var r = document.getElementById('res6'); r.className = 'hidden'; r.innerHTML = '';
+  document.getElementById('againBtn').classList.add('hidden'); document.getElementById('resultBtn').classList.remove('hidden');
+}
+document.getElementById('resultBtn').onclick = function () {
+  quiz6Attempt++;
+  var score = 0, review = [], unanswered = 0;
+  Q6.forEach(function (q) {
+    var box = document.getElementById(q.id), sel = box.querySelector('input:checked'), f = box.querySelector('.fb');
+    if (!sel) unanswered++;
+    box.querySelectorAll('.opts label').forEach(function (l) {
+      var inp = l.querySelector('input'), v = +inp.value; inp.disabled = true; l.classList.add('locked');
+      if (v === q.ok) l.classList.add('right'); else if (sel && inp === sel) l.classList.add('wrong');
+    });
+    if (sel && +sel.value === q.ok) { score++; f.className = 'fb show ok'; f.innerHTML = '<b>Correct.</b> ' + q.why; addPoints(q.key, quiz6Attempt === 1 ? 10 : 5); }
+    else { review.push(q.topic); f.className = 'fb show no'; f.innerHTML = '<b>' + (sel ? 'Not correct.' : 'No answer.') + '</b> The correct answer is: <b>' + q.opts[q.ok] + '</b>.<br>' + q.why; }
+  });
+  var r = document.getElementById('res6'), pass = score >= PASS_MARK;
+  document.getElementById('resultBtn').classList.add('hidden');
+  if (pass) {
+    r.className = 'done-banner show';
+    r.innerHTML = '<b>Congratulations! You passed: ' + score + ' of 6 correct.</b><br>Total points: ' + points + '.' + (review.length ? '<br>You may want to review: ' + review.join(', ') + '.' : ' A perfect score!') + '<br>Key idea of the whole lab: <b>a key is only as strong as the unpredictability of its seed</b>.';
+    document.getElementById('nav6').classList.add('done');
+  } else {
+    r.className = 'fb show info';
+    r.innerHTML = '<b>Not passed yet: ' + score + ' of 6 correct. You need at least ' + PASS_MARK + '.</b><br>Read the explanations below. The correct answers are shown. You may want to review: ' + review.join(', ') + '.<br>You have another chance: press <b>Try again</b> at the bottom. The answers will be in a new order.';
+    document.getElementById('againBtn').classList.remove('hidden');
+  }
+  window.scrollTo(0, 0);
+};
+document.getElementById('againBtn').onclick = function () { renderQuiz6(); window.scrollTo(0, 0); };
+renderQuiz6();
+checkLevels();
+</script>
+</body>
+</html>
