@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab: What ECB Really Hides</title>
+<style>
+  :root{
+    --bg:#f7f8fa;
+    --card-bg:#ffffff;
+    --accent:#2563eb;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --border:#e2e5ea;
+    --good:#16a34a;
+    --good-bg:#f0fdf4;
+    --bad:#dc2626;
+    --bad-bg:#fef2f2;
+    --code-bg:#f1f3f6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI", Arial, Helvetica, sans-serif;
+    line-height:1.55;
+    margin:0;
+    padding:0 0 70px 0;
+  }
+  .page{max-width:880px;margin:0 auto;padding:0 20px;}
+
+  .cover{
+    text-align:center;
+    padding:55px 20px 40px 20px;
+    border-bottom:4px solid var(--accent);
+    margin-bottom:40px;
+  }
+  .cover h1{font-size:1.9em;margin:0 0 8px 0;}
+  .cover p.subtitle{color:var(--muted);font-size:1.05em;margin:0;}
+  .cover p.prepared{margin-top:45px;font-size:0.9em;color:var(--muted);}
+
+  .scenario-box{
+    background:#eef3ff;
+    border:2px solid var(--accent);
+    border-radius:12px;
+    padding:26px 28px;
+    margin-bottom:40px;
+    font-size:1.05em;
+  }
+  .scenario-box h2{margin-top:0;}
+
+  .task-card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 26px;
+    margin-bottom:30px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .task-card h3{margin-top:0;color:var(--accent);font-size:1.1em;}
+
+  code{
+    background:var(--code-bg);
+    padding:2px 6px;
+    border-radius:4px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:0.95em;
+  }
+  pre{
+    background:var(--code-bg);
+    padding:14px 16px;
+    border-radius:8px;
+    overflow-x:auto;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:0.92em;
+  }
+
+  details{
+    margin:15px 0;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 16px;
+    background:#fafbfc;
+  }
+  details summary{
+    cursor:pointer;
+    font-weight:600;
+    color:var(--accent);
+  }
+  details[open] summary{margin-bottom:8px;}
+
+  label.field-label{
+    display:block;
+    font-weight:600;
+    margin:14px 0 6px 0;
+  }
+
+  .mcq{margin:14px 0 6px 0;position:relative;}
+  .mcq input[type="radio"]{position:absolute;opacity:0;pointer-events:none;}
+  .mcq label.option{
+    display:block;
+    padding:10px 14px;
+    margin-bottom:8px;
+    border:2px solid var(--border);
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .mcq input[value="correct"]:checked + label.option{
+    border-color:var(--good);background:var(--good-bg);
+  }
+  .mcq input[value="wrong"]:checked + label.option{
+    border-color:var(--bad);background:var(--bad-bg);
+  }
+  .mcq-feedback{display:none;margin-top:6px;padding:10px 12px;border-radius:6px;font-size:0.92em;}
+  .mcq input[value="correct"]:checked ~ .mcq-feedback.correct{
+    display:block;background:var(--good-bg);color:var(--good);
+  }
+  .mcq input[value="wrong"]:checked ~ .mcq-feedback.wrong{
+    display:block;background:var(--bad-bg);color:var(--bad);
+  }
+
+  fieldset{
+    border:2px dashed var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    margin:0;
+  }
+  fieldset legend{font-weight:700;padding:0 8px;}
+  fieldset label.checkbox-line{
+    display:block;
+    margin:8px 0;
+    padding:8px 10px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  fieldset input[type="checkbox"]{margin-right:8px;}
+  fieldset:valid{border-color:var(--good);border-style:solid;}
+  .complete-msg{display:none;margin-top:12px;color:var(--good);font-weight:700;}
+  fieldset:valid ~ .complete-msg{display:block;}
+
+  .back-top{
+    display:block;
+    text-align:right;
+    margin-top:30px;
+    font-size:0.9em;
+  }
+  a{color:var(--accent);}
+  .wrapup{
+    background:#fffbea;
+    border:2px solid #f5c84c;
+    border-radius:12px;
+    padding:22px 26px;
+    margin-bottom:30px;
+  }
+  .step-label{
+    display:inline-block;
+    background:var(--accent);
+    color:#fff;
+    border-radius:50%;
+    width:24px;height:24px;
+    text-align:center;
+    line-height:24px;
+    font-size:0.85em;
+    margin-right:8px;
+  }
+</style>
+</head>
+<body>
+<div class="page" id="top">
+
+  <div class="cover">
+    <h1>Lab: What ECB Really Hides</h1>
+    <p class="subtitle">The ECB Picture Test — Block Cipher Modes of Operation</p>
+    <p class="prepared">Prepared by: MR. Rostami</p>
+  </div>
+
+  <div class="scenario-box">
+    <h2>Scenario</h2>
+    <p>A software vendor advertises their new file encryption feature like this: <em>"We use AES encryption, the same standard banks use. Once a file is encrypted, it is completely unreadable — no exceptions."</em></p>
+    <p>Your job is to test this claim. You will encrypt the same image twice, with the same cipher and the same key, but with two different modes of operation — and see whether the claim holds up.</p>
+  </div>
+
+  <!-- TASK 1: CREATE THE TEST IMAGE -->
+  <div class="task-card">
+    <h3>Task 1 — Create a test image</h3>
+    <p>This test needs a <strong>BMP</strong> file, not a JPG or PNG. Those two formats compress the image before saving it, which already breaks up repeated patterns in the data — there would be nothing left to see. A BMP stores every pixel exactly as it is, with no compression.</p>
+    <p>We will use a demo image that already ships with ImageMagick, a free image tool. It has large areas of flat, repeated color, which is exactly what we need.</p>
+    <pre>magick logo: -resize 256x256 -type TrueColor -depth 8 BMP3:test.bmp</pre>
+
+    <details>
+      <summary>If the command is not found</summary>
+      <p>ImageMagick may not be installed yet:</p>
+      <pre>sudo apt update
+sudo apt install imagemagick</pre>
+      <p>On some systems, the command is called <code>convert</code> instead of <code>magick</code>:</p>
+      <pre>convert logo: -resize 256x256 -type TrueColor -depth 8 BMP3:test.bmp</pre>
+    </details>
+
+    <p class="hint" style="font-size:0.85em;color:var(--muted);">Open <code>test.bmp</code> now in an image viewer, so you remember what the original looks like.</p>
+
+    <fieldset>
+      <legend>Mark once done</legend>
+      <label class="checkbox-line"><input type="checkbox" required> I created <code>test.bmp</code> and viewed it</label>
+    </fieldset>
+    <p class="complete-msg">✓ Done</p>
+  </div>
+
+  <!-- TASK 2: SPLIT HEADER AND PIXELS -->
+  <div class="task-card">
+    <h3>Task 2 — Separate the header from the pixel data</h3>
+    <p>If we encrypt the whole file, including the header, the result will not open as an image at all — the viewer needs the real width, height and format to even start drawing. So we only encrypt the <strong>pixel data</strong>, and leave the header alone.</p>
+    <p>A BMP header stores the exact byte offset where pixel data begins, in its first 14 bytes. Find it:</p>
+    <pre>python3 -c "import struct; print(struct.unpack('&lt;I', open('test.bmp','rb').read(14)[10:14])[0])"</pre>
+    <p>This prints a number — usually 54 for a simple BMP like ours. Use it to split the file:</p>
+    <pre>OFFSET=$(python3 -c "import struct; print(struct.unpack('&lt;I', open('test.bmp','rb').read(14)[10:14])[0])")
+dd if=test.bmp of=header.bin bs=1 count=$OFFSET
+dd if=test.bmp of=pixels.bin bs=1 skip=$OFFSET</pre>
+    <p>You now have two files: <code>header.bin</code> (never touched again) and <code>pixels.bin</code> (what we will encrypt).</p>
+
+    <fieldset>
+      <legend>Mark once done</legend>
+      <label class="checkbox-line"><input type="checkbox" required> I split the file into <code>header.bin</code> and <code>pixels.bin</code></label>
+    </fieldset>
+    <p class="complete-msg">✓ Done</p>
+  </div>
+
+  <!-- TASK 3: ENCRYPT TWICE -->
+  <div class="task-card">
+    <h3>Task 3 — Encrypt the same pixels two ways</h3>
+    <p>Use the exact same key both times — the only thing that changes is the mode.</p>
+
+    <p><span class="step-label">1</span><strong>ECB mode:</strong></p>
+    <pre>openssl enc -aes-128-ecb -K 000102030405060708090a0b0c0d0e0f -in pixels.bin -out pixels_ecb.bin</pre>
+
+    <p><span class="step-label">2</span><strong>CBC mode</strong> (same key, plus an IV):</p>
+    <pre>openssl enc -aes-128-cbc -K 000102030405060708090a0b0c0d0e0f -iv 000102030405060708090a0b0c0d0e0f -in pixels.bin -out pixels_cbc.bin</pre>
+
+    <p class="hint" style="font-size:0.85em;color:var(--muted);">Notice: no password, no PBKDF2, no salt here. We are using a raw key directly, because we need full control over exactly what goes into the cipher.</p>
+
+    <fieldset>
+      <legend>Mark once done</legend>
+      <label class="checkbox-line"><input type="checkbox" required> I encrypted the pixel data in ECB mode</label>
+      <label class="checkbox-line"><input type="checkbox" required> I encrypted the same pixel data in CBC mode</label>
+    </fieldset>
+    <p class="complete-msg">✓ Done</p>
+  </div>
+
+  <!-- TASK 4: REASSEMBLE AND VIEW -->
+  <div class="task-card">
+    <h3>Task 4 — Rebuild the images and look</h3>
+    <p>Glue the original header back onto each encrypted pixel file:</p>
+    <pre>cat header.bin pixels_ecb.bin > output_ecb.bmp
+cat header.bin pixels_cbc.bin > output_cbc.bmp</pre>
+    <p>Open both files in an image viewer:</p>
+    <pre>xdg-open output_ecb.bmp
+xdg-open output_cbc.bmp</pre>
+    <p class="hint" style="font-size:0.85em;color:var(--muted);">If <code>xdg-open</code> does not work, open the files directly from a file manager, or with <code>eog output_ecb.bmp</code>.</p>
+
+    <fieldset>
+      <legend>Mark once done</legend>
+      <label class="checkbox-line"><input type="checkbox" required> I opened and compared both images side by side</label>
+    </fieldset>
+    <p class="complete-msg">✓ Done</p>
+  </div>
+
+  <!-- TASK 5: EXPLAIN WHY -->
+  <div class="task-card">
+    <h3>Task 5 — Explain what you saw</h3>
+    <p>One of the two images should still show a clear outline of the original picture. The other should look like pure visual noise, with no shapes at all — even though both were "properly" encrypted with AES.</p>
+
+    <div class="mcq">
+      <p>Why does ECB leave the shapes visible?</p>
+      <input type="radio" name="q2" id="q2a" value="wrong">
+      <label class="option" for="q2a">A) ECB uses a weaker version of AES</label>
+      <input type="radio" name="q2" id="q2b" value="correct">
+      <label class="option" for="q2b">B) ECB encrypts each block independently, so identical plaintext blocks always produce identical ciphertext blocks</label>
+      <input type="radio" name="q2" id="q2c" value="wrong">
+      <label class="option" for="q2c">C) ECB does not actually encrypt the pixel data, only the header</label>
+      <div class="mcq-feedback correct">Correct. Large flat-color areas in the image become many identical 16-byte plaintext blocks — and in ECB, identical input always gives identical output, so the outline survives.</div>
+      <div class="mcq-feedback wrong">Not quite. AES itself is the same strength in both modes — the difference is how blocks relate to each other.</div>
+    </div>
+
+    <div class="mcq">
+      <p>Why does CBC hide the shapes?</p>
+      <input type="radio" name="q3" id="q3a" value="correct">
+      <label class="option" for="q3a">A) Each block is mixed with the previous ciphertext block before encrypting, so identical plaintext blocks no longer produce identical output</label>
+      <input type="radio" name="q3" id="q3b" value="wrong">
+      <label class="option" for="q3b">B) CBC uses a longer key than ECB</label>
+      <input type="radio" name="q3" id="q3c" value="wrong">
+      <label class="option" for="q3c">C) CBC compresses the image before encrypting</label>
+      <div class="mcq-feedback correct">Correct. The chaining step is exactly what breaks the block-to-block pattern that ECB leaves behind.</div>
+      <div class="mcq-feedback wrong">Not quite. The key is identical in both tests here — only the mode is different.</div>
+    </div>
+  </div>
+
+  <div class="wrapup">
+    <h3>Why this matters</h3>
+    <p>The vendor's claim was not false, exactly — AES-128 itself was never broken in this lab. But "we use AES" says nothing about the mode of operation, and the mode is what decides whether patterns survive encryption. ECB should never be used for anything beyond a single 16-byte block. This is also why real systems default to CBC, CTR, or GCM.</p>
+  </div>
+
+  <a class="back-top" href="#top">↑ Back to Top</a>
+
+</div>
+</body>
+</html>
