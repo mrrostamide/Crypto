@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CTF: The Departing Employee (AES-128-ECB)</title>
+<style>
+  :root{
+    --bg:#f7f8fa;
+    --card-bg:#ffffff;
+    --accent:#2563eb;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --border:#e2e5ea;
+    --good:#16a34a;
+    --good-bg:#f0fdf4;
+    --bad:#dc2626;
+    --bad-bg:#fef2f2;
+    --code-bg:#f1f3f6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI", Arial, Helvetica, sans-serif;
+    line-height:1.55;
+    margin:0;
+    padding:0 0 70px 0;
+  }
+  .page{max-width:880px;margin:0 auto;padding:0 20px;}
+
+  .cover{
+    text-align:center;
+    padding:55px 20px 40px 20px;
+    border-bottom:4px solid var(--accent);
+    margin-bottom:40px;
+  }
+  .cover h1{font-size:1.9em;margin:0 0 8px 0;}
+  .cover p.subtitle{color:var(--muted);font-size:1.05em;margin:0;}
+  .cover p.prepared{margin-top:45px;font-size:0.9em;color:var(--muted);}
+
+  .scenario-box{
+    background:#eef3ff;
+    border:2px solid var(--accent);
+    border-radius:12px;
+    padding:26px 28px;
+    margin-bottom:40px;
+    font-size:1.05em;
+  }
+  .scenario-box h2{margin-top:0;}
+
+  .task-card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 26px;
+    margin-bottom:30px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .task-card h3{margin-top:0;color:var(--accent);font-size:1.1em;}
+
+  code{
+    background:var(--code-bg);
+    padding:2px 6px;
+    border-radius:4px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:0.95em;
+  }
+  pre{
+    background:var(--code-bg);
+    padding:14px 16px;
+    border-radius:8px;
+    overflow-x:auto;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:0.92em;
+  }
+
+  details{
+    margin:15px 0;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 16px;
+    background:#fafbfc;
+  }
+  details summary{
+    cursor:pointer;
+    font-weight:600;
+    color:var(--accent);
+  }
+  details[open] summary{margin-bottom:8px;}
+
+  label.field-label{
+    display:block;
+    font-weight:600;
+    margin:14px 0 6px 0;
+  }
+  input[type="text"]{
+    padding:9px 10px;
+    border:2px solid var(--border);
+    border-radius:6px;
+    width:100%;
+    max-width:560px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:0.95em;
+    display:block;
+  }
+  input[type="text"]:not(:placeholder-shown):invalid{
+    border-color:var(--bad);
+    background:var(--bad-bg);
+  }
+  input[type="text"]:not(:placeholder-shown):valid{
+    border-color:var(--good);
+    background:var(--good-bg);
+  }
+  .hint{font-size:0.85em;color:var(--muted);margin-top:6px;}
+
+  .field-feedback{display:none;margin-top:8px;padding:9px 12px;border-radius:6px;font-size:0.9em;}
+  input[type="text"]:valid ~ .field-feedback.good{
+    display:block;background:var(--good-bg);color:var(--good);border:1px solid var(--good);
+  }
+
+  fieldset{
+    border:2px dashed var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    margin:0;
+  }
+  fieldset legend{font-weight:700;padding:0 8px;}
+  fieldset label.checkbox-line{
+    display:block;
+    margin:8px 0;
+    padding:8px 10px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  fieldset input[type="checkbox"]{margin-right:8px;}
+  fieldset:valid{border-color:var(--good);border-style:solid;}
+  .complete-msg{display:none;margin-top:12px;color:var(--good);font-weight:700;}
+  fieldset:valid ~ .complete-msg{display:block;}
+
+  .back-top{
+    display:block;
+    text-align:right;
+    margin-top:30px;
+    font-size:0.9em;
+  }
+  a{color:var(--accent);}
+  .wrapup{
+    background:#fffbea;
+    border:2px solid #f5c84c;
+    border-radius:12px;
+    padding:22px 26px;
+    margin-bottom:30px;
+  }
+  .flag-box{
+    background:#f0fdf4;
+    border:2px solid var(--good);
+    border-radius:12px;
+    padding:22px 26px;
+    margin-bottom:30px;
+  }
+  table.cipher-table{border-collapse:collapse;width:100%;margin:14px 0;}
+  table.cipher-table th, table.cipher-table td{
+    border:1px solid var(--border);
+    padding:8px 10px;
+    text-align:left;
+    font-size:0.95em;
+  }
+  table.cipher-table th{background:var(--code-bg);}
+</style>
+</head>
+<body>
+<div class="page" id="top">
+
+  <div class="cover">
+    <h1>CTF: The Departing Employee</h1>
+    <p class="subtitle">Symmetric Encryption with OpenSSL — AES-128-ECB</p>
+    <p class="prepared">Prepared by: MR. Rostami</p>
+  </div>
+
+  <div class="scenario-box">
+    <h2>Scenario</h2>
+    <p>An employee left the company suddenly. Before leaving, they saved a file called <code>challenge.enc</code> on a shared drive. Nobody knows what is inside, or how it was encrypted.</p>
+    <p>The security team turned this into a training CTF for new hires: recover the file, and find the flag hidden inside. You only have the encrypted file and a list of passwords people commonly reuse. You do <strong>not</strong> know which cipher was used.</p>
+  </div>
+
+  <!-- TASK 1: INTRO -->
+  <div class="task-card">
+    <h3>Task 1 — Rules of this challenge</h3>
+    <p>This is a game, not a real investigation. Your goal: recover the hidden text inside <code>challenge.enc</code> and find a string that looks like <code>FLAG{...}</code>.</p>
+    <p>You already know one tool from the last lab:</p>
+    <pre>bruteforce-salted-openssl -f wordlist.txt -c CIPHER_NAME -K -i 10000 FILE</pre>
+    <p>This time, nobody tells you the cipher. You will need to find it out yourself, step by step.</p>
+    <p class="hint">Remember <code>-K -i 10000</code> — it tells the tool to derive the key with PBKDF2, matching how the file was encrypted. Without it, every password fails, even the correct one.</p>
+  </div>
+
+  <!-- TASK 2: HEADER CHECK -->
+  <div class="task-card">
+    <h3>Task 2 — Inspect the file first</h3>
+    <p>Before trying anything else, look at the raw bytes of <code>challenge.enc</code>. Open it in <strong>GHex</strong> and read the first bytes as text, on the right-hand side of the window.</p>
+
+    <details>
+      <summary>Alternative: use the terminal instead of GHex</summary>
+      <p>If GHex is not available, run:</p>
+      <pre>xxd challenge.enc | head</pre>
+      <p>Look at the ASCII column on the right. The first characters should read a short word, followed by two underscores.</p>
+    </details>
+
+    <label class="field-label" for="t2header">Type exactly what you see as the first bytes (as text):</label>
+    <input type="text" id="t2header" placeholder="type here" required pattern="\x53\x61\x6c\x74\x65\x64\x5f\x5f">
+    <div class="field-feedback good">Correct. This confirms <code>challenge.enc</code> was made by OpenSSL's <code>enc</code> command with a salt — the same family of tool as the last lab.</div>
+    <p class="hint">Notice what this header does <strong>not</strong> tell you: it never says which cipher was used.</p>
+  </div>
+
+  <!-- TASK 3: FIND THE CIPHER AND PASSWORD -->
+  <div class="task-card">
+    <h3>Task 3 — Find the cipher and the password</h3>
+    <p>The header confirms the tool, but OpenSSL's <code>enc</code> header never stores the cipher name or key size. Nobody will tell you which one was used — you have to test for it.</p>
+    <p>A common first guess is AES-256-CBC. Try it against the full wordlist:</p>
+    <pre>bruteforce-salted-openssl -f wordlist.txt -c aes-256-cbc -K -i 10000 challenge.enc</pre>
+    <p>If that does not find a working password, the cipher was something else. Think about what other AES variants exist, and keep testing.</p>
+
+    <p class="hint">A wrong cipher guess will fail on every password in the list. Keep changing the <code>-c</code> value until one succeeds.</p>
+
+    <label class="field-label" for="t3cipher">Which cipher actually worked? Type it exactly as used in the command:</label>
+    <input type="text" id="t3cipher" placeholder="type the cipher name" required pattern="\x61\x65\x73\x2d\x31\x32\x38\x2d\x65\x63\x62">
+    <div class="field-feedback good">Correct. Same algorithm family as AES-256-CBC, but a different mode and key size — which is exactly why the first guess failed.</div>
+
+    <label class="field-label" for="t3pass">What password did the tool report, once you had the right cipher?</label>
+    <input type="text" id="t3pass" placeholder="type the password" required pattern="\x64\x72\x61\x67\x6f\x6e\x66\x6c\x79\x34\x32">
+    <div class="field-feedback good">That's it. Now you have everything needed to decrypt the file properly.</div>
+  </div>
+
+  <!-- TASK 4: DECRYPT AND FLAG -->
+  <div class="task-card">
+    <h3>Task 4 — Decrypt and capture the flag</h3>
+    <p>Using the cipher and password you found in Task 3, decrypt the file for real:</p>
+    <pre>openssl enc -d -CIPHER_NAME -pbkdf2 -in challenge.enc -out flag.txt -pass pass:FOUND_PASSWORD</pre>
+    <p class="hint">Replace <code>CIPHER_NAME</code> with whichever cipher worked in Task 3 — the flag follows <code>-d</code> directly, the same way you passed it to <code>bruteforce-salted-openssl</code> with <code>-c</code>.</p>
+    <p>Open <code>flag.txt</code>. Most of it is filler text. The flag itself is on its own line, near the end, in the form <code>FLAG{...}</code>.</p>
+
+    <label class="field-label" for="t5flag">Type the flag exactly as you found it:</label>
+    <input type="text" id="t5flag" placeholder="FLAG{...}" required pattern="\x46\x4c\x41\x47\x7b\x62\x6c\x6f\x63\x6b\x5f\x63\x69\x70\x68\x65\x72\x5f\x63\x74\x66\x5f\x32\x30\x32\x36\x7d">
+    <div class="field-feedback good">Flag captured. Well done — you identified the tool, found the cipher, cracked the password, and recovered the hidden message.</div>
+  </div>
+
+  <div class="flag-box">
+    <h3>Reflection</h3>
+    <fieldset>
+      <legend>Before you finish, think about these</legend>
+      <label class="checkbox-line"><input type="checkbox" required> I can explain why the file header did not reveal the cipher</label>
+      <label class="checkbox-line"><input type="checkbox" required> I can explain why a wrong cipher guess fails even with the correct password</label>
+      <label class="checkbox-line"><input type="checkbox" required> I can explain why a short wordlist was enough to win this challenge</label>
+    </fieldset>
+    <p class="complete-msg">✓ Challenge complete</p>
+  </div>
+
+  <div class="wrapup">
+    <h3>Why this matters</h3>
+    <p>In this challenge, two things were unknown: the password, and the cipher. OpenSSL's file format never stores which cipher made it — that information has to come from somewhere else, such as documentation, a script, or trial and error. In a real investigation, getting the cipher wrong means every password attempt fails, even the correct one.</p>
+  </div>
+
+  <a class="back-top" href="#top">↑ Back to Top</a>
+
+</div>
+</body>
+</html>
